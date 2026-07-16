@@ -1,0 +1,19 @@
+class Solution:
+    def gcdSum(self, nums: list[int]) -> int:
+        n = len(nums)
+        prefixGcd = []
+
+        mx = nums[0]
+        for num in nums:
+            mx = max(mx, num)
+            prefixGcd.append(gcd(mx, num))
+        
+        prefixGcd.sort()
+        l, r = 0, n - 1
+        ans = 0
+        while l < r:
+            ans += gcd(prefixGcd[l], prefixGcd[r])
+            l += 1
+            r -= 1
+        
+        return ans
