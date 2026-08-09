@@ -1,0 +1,30 @@
+class Solution(object):
+    def solve(self, i, M):
+        N, dp, poss = self.N, self.dp, self.poss
+        if N-i <= 2*M: # remanining <= 2*M, take all
+            return poss[i]
+        if (i, M) in dp:
+            return dp[(i, M)]
+        
+        res = poss[i] - poss[i+1] - self.solve(i+1, max(M, 1))
+        for x in range(2, 2*M+1):
+            res = max(res, poss[i] - poss[i+x] - self.solve(i+x, max(M, x)))
+        dp[(i, M)] = res
+        return res
+    
+    def stoneGameII(self, piles):
+        """
+        :type piles: List[int]
+        :rtype: int
+        """
+        
+        poss = [0]
+        for i in range(len(piles)-1, -1, -1):
+            poss.append(poss[-1] + piles[i])
+        poss = poss[::-1]
+        
+        self.N = len(piles)
+        self.poss = poss
+        self.dp = dict()
+            
+        return (poss[0] + self.solve(0, 1)) // 2
