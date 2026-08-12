@@ -1,0 +1,11 @@
+class Solution:
+    def maxSubarrayLength(self, nums: List[int], k: int) -> int:
+        l = curr_ans = 0  # Initialize left pointer and current answer
+        curr_count = collections.defaultdict(int)  # Dictionary to store counts of elements
+        for r in range(len(nums)):  # Iterate through the array
+            curr_count[nums[r]] += 1  # Increment count of current element
+            while curr_count[nums[r]] > k:  # If count exceeds k
+                curr_count[nums[l]] -= 1  # Move left pointer and decrement count
+                l += 1
+            curr_ans = max(curr_ans, r - l + 1)  # Update current answer
+        return curr_ans
