@@ -1,0 +1,50 @@
+def combine(a, b):
+    la, lba, (lla, cla), (lra, cra) = a
+    lb, lbb, (llb, clb), (lrb, crb) = b
+
+    lln = lla
+    lln = lla
+    if lla == la and cla == clb:  # LRLr merge
+        lln += llb
+
+    lrn = lrb
+    if lrb == lb and crb == cra:  # lRLR merge
+        lrn += lra
+
+    lmn = 0
+    if cra == clb:  # lRLr merge
+        lmn = lra + llb
+
+    lbn = max(
+        lba, lbb,  # previous bests
+        lmn,       # new middle
+        lln, lrn,  # new sides
+    )
+
+    return la+lb, lbn, (lln, cla), (lrn, crb)
+
+def initial_from(c):
+    # len, len best, (len left, char left), (len right, char right)
+    return [1, 1, (1, c), (1, c)]
+
+class Solution:
+    def longestRepeating(self, s: str, queryCharacters: str, queryIndices: List[int]) -> List[int]:
+        table = [list(map(initial_from, s))]
+        while len(prev := table[-1]) > 1:
+            table.append(curr := [])
+            for batch in batched(prev, 2):
+                if len(batch) == 1:
+                    curr.append(*batch)
+                else:
+                    curr.append(combine(*batch))
+
+        result = []
+        for i, c in zip(queryIndices, queryCharacters):
+            table[0][i] = initial_from(c)
+            for prev, curr in pairwise(table):
+                i >>= 1
+                curr[i] = combine(prev[2*i], prev[2*i+1]) if 2*i+1 in range(len(prev)) else prev[2*i]
+
+            result.append(table[-1][0][1])
+
+        return result
