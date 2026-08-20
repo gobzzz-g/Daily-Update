@@ -1,0 +1,12 @@
+class Solution:
+    def resultArray(self, nums: List[int]) -> List[int]:
+        left: list[int] = [nums.pop(0)]
+        right: list[int] = [nums.pop(0)]
+
+        for num in nums:
+            if left[-1] > right[-1]:
+                left.append(num)
+            else:
+                right.append(num)
+
+        return left + right
