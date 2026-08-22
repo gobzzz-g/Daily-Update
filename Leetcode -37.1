@@ -1,0 +1,21 @@
+class Solution(object):
+    def checkDivisibility(self, n):
+        """
+        :type n: int
+        :rtype: bool
+        """
+        def sum_(n):
+
+            dig_sum = 0
+            dig_mul = 1
+
+            i = n
+            while i:
+                rem = i%10
+                dig_sum +=rem
+                dig_mul *= rem
+
+                i = i//10
+            return dig_sum + dig_mul
+        
+        return n%sum_(n) == 0
