@@ -1,0 +1,10 @@
+class Solution:
+    def stoneGameVIII(self, stones: List[int]) -> int:
+        n=len(stones)
+        for i in range(1,n):
+            stones[i]+=stones[i-1]
+            
+        c_max=stones[-1]
+        for v in stones[-2:0:-1]:
+            c_max=max(c_max,v-c_max)
+        return c_max
