@@ -1,0 +1,50 @@
+class Solution:
+    def lexGreaterPermutation(self, s: str, target: str) -> str:
+        freq = [0] * 26
+
+        for ch in s:
+            freq[ord(ch) - ord('a')] += 1
+
+        n = len(s)
+        matched = 0
+
+        for i in range(n):
+            x = ord(target[i]) - ord('a')
+
+            if freq[x] == 0:
+           
+                for c in range(x + 1, 26):
+                    if freq[c] > 0:
+                        freq[c] -= 1
+
+                        ans = target[:i] + chr(c + ord('a'))
+
+                        for j in range(26):
+                            ans += chr(j + ord('a')) * freq[j]
+
+                        return ans
+
+                break
+
+            freq[x] -= 1
+            matched += 1
+
+        for i in range(matched - 1, -1, -1):
+            x = ord(target[i]) - ord('a')
+
+         
+            freq[x] += 1
+
+
+            for c in range(x + 1, 26):
+                if freq[c] > 0:
+                    freq[c] -= 1
+
+                    ans = target[:i] + chr(c + ord('a'))
+
+                    for j in range(26):
+                        ans += chr(j + ord('a')) * freq[j]
+
+                    return ans
+
+        return ""
