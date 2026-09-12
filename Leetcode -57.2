@@ -1,0 +1,41 @@
+import bisect
+
+class Solution(object):
+    def maximumWeight(self, intervals):
+        n = len(intervals)
+        
+        arr = sorted(range(n), key=lambda i: intervals[i][1])
+        sorted_l = [intervals[i][0] for i in arr]
+        sorted_r = [intervals[i][1] for i in arr]
+        sorted_w = [intervals[i][2] for i in arr]
+        
+        dp = [[(0, ()) for _ in range(5)] for _ in range(n + 1)]
+        
+        for i in range(1, n + 1):
+            l = sorted_l[i-1]
+            w = sorted_w[i-1]
+            orig = arr[i-1]
+            
+            p = bisect.bisect_left(sorted_r, l, 0, i - 1)
+            
+            for k in range(5):
+                dp[i][k] = dp[i-1][k]
+            
+            for k in range(1, 5):
+                prev_weight, prev_indices = dp[p][k-1]
+                candidate_weight = prev_weight + w
+                candidate_indices = tuple(sorted(prev_indices + (orig,)))
+                
+                cur_weight, cur_indices = dp[i][k]
+                if candidate_weight > cur_weight or (candidate_weight == cur_weight and candidate_indices < cur_indices):
+                    dp[i][k] = (candidate_weight, candidate_indices)
+        
+        best_weight = -1
+        best_indices = None
+        for k in range(5):
+            w_, idx_ = dp[n][k]
+            if w_ > best_weight or (w_ == best_weight and (best_indices is None or idx_ < best_indices)):
+                best_weight = w_
+                best_indices = idx_
+        
+        return list(best_indices)
