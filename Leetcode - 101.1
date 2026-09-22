@@ -1,0 +1,198 @@
+class SegTree:
+
+    def __init__(
+        self, a, combine, modify_op, *,
+        identity=None, seek_condition=None, tour_cache=False, default=None,
+    ):
+        if type(a) == int:
+            self.n = a
+            self.val = [identity] * (2*a)
+        else:
+            self.n = len(a)
+            self.val = [-1]*self.n + a
+
+            for i in reversed(range(1, self.n)):
+                self.val[i] = combine(self.val[i<<1], self.val[i<<1|1])
+        
+        self.combine = combine
+        self.modify_op = modify_op
+
+        self.identity = identity
+        self.seek_condition = seek_condition
+
+        # can cache the covering segments when you query the same subranges over and over again
+        if tour_cache:
+            # lru_cache is c-accelerated. You cannot beat it
+            # https://rednafi.com/python/lru_cache_on_methods
+            self.get_tour = cache(self.get_tour)
+            # penalty of instance-scoped methods is negligible when method bodies are expensive enough
+            self.query = self.query_with_tour
+            self.seek = self.seek_with_tour
+            # self.seek_leftmost = self.seek_leftmost_with_tour
+            # self.seek_rightmost = self.seek_rightmost_with_tour
+
+
+    def get_tour(self, l, r):
+        l += self.n
+        r += self.n
+
+        ltour = []
+        rtour = []
+
+        while l < r:
+            if l & 1:
+                ltour.append(l)
+                l += 1
+            if r & 1:
+                r -= 1
+                rtour.append(r)
+            l //= 2
+            r //= 2
+        
+        return ltour + rtour[::-1]
+
+
+    def modify(self, i, x):
+        i += self.n
+        self.val[i] = self.modify_op(self.val[i], x)
+        i //= 2
+
+        while i:
+            self.val[i] = self.combine(self.val[i<<1], self.val[i<<1|1])
+            i //= 2
+
+
+    def query_with_tour(self, l, r):
+        if l == r: return self.identity
+        return reduce(self.combine, map(self.val.__getitem__, self.get_tour(l, r)))
+    
+    
+    def query(self, l, r):
+        if l == r: return self.identity
+
+        l += self.n
+        r += self.n
+        
+        retl = None
+        retr = None
+
+        # supports non-commutative combiners
+        while l < r:
+            if l & 1:
+                retl = self.val[l] if retl is None else self.combine(retl, self.val[l])
+                l += 1
+            if r & 1:
+                r -= 1
+                retr = self.val[r] if retr is None else self.combine(self.val[r], retr)
+            l //= 2
+            r //= 2
+        
+        return retl if retr is None else retr if retl is None else self.combine(retl, retr)
+
+
+    # heuristic: short-circuit if LCA of [l..r-1] fails the seek condition
+    def seek_short_circuit(self, l, r, targ):
+        l += self.n
+        r += self.n
+
+        lca = (r-1 >> (l^r-1).bit_length()) or 1
+        return not self.seek_condition(self.val[lca], targ)
+
+
+    def dive(self, i, targ, right):
+        while i < self.n:
+            i = i<<1 | right
+            if not self.seek_condition(self.val[i], targ):
+                i ^= 1
+        return i - self.n
+
+
+    def seek_with_tour(self, l, r, targ, right):
+        if l == r or self.seek_short_circuit(l, r, targ):
+            return -1
+        
+        tour = self.get_tour(l, r) if not right else reversed(self.get_tour(l, r))
+        for i in tour:
+            if self.seek_condition(self.val[i], targ):
+                return self.dive(i, targ, right)
+        return -1
+
+
+    def seek(self, l, r, targ, right):
+        if l == r or self.seek_short_circuit(l, r, targ):
+            return -1
+        
+        l += self.n - 1
+        r += self.n
+
+        l0 = l
+        r0 = r
+
+        if not right:
+            while r - l >= 2:
+                if not l & 1:
+                    if self.seek_condition(self.val[l + 1], targ):
+                        return self.dive(l + 1, targ, right)
+                l //= 2; r //= 2
+            for sh in reversed(range(r0.bit_length() - r.bit_length())):
+                r = r0 >> sh
+                if r & 1:
+                    if self.seek_condition(self.val[r - 1], targ):
+                        return self.dive(r - 1, targ, right)
+        else:
+            while r - l >= 2:
+                if r & 1:
+                    if self.seek_condition(self.val[r - 1], targ):
+                        return self.dive(r - 1, targ, right)
+                l //= 2; r //= 2
+            for sh in reversed(range(r0.bit_length() - r.bit_length())):
+                l = l0 >> sh
+                if not l & 1:
+                    if self.seek_condition(self.val[l + 1], targ):
+                        return self.dive(l + 1, targ, right)
+        return -1
+
+
+class Solution:
+    def resultArray(self, a: List[int], k: int, queries: List[List[int]]) -> List[int]:
+        n = len(a)
+        a = [x%k for x in a]
+
+        # time complexity: O(n*k + qlogn*k) ~= 2.2E6
+        # queries = [idx, val (assign), start (query [start...]), x (remainder % k)]
+
+        def base_value(x):
+            count = [0] * k
+            count[x] = 1
+            return (x, count)
+        
+        def modify_op(oldx, x):
+            return base_value(x)
+        
+        # (all, preprod)
+        def combine(left, right):
+            lall, lpre = left
+            rall, rpre = right
+
+            all_ = lall * rall
+            
+            pre = lpre[:]
+            for x,cnt in enumerate(rpre):
+                pre[x*lall % k] += cnt
+
+            return (all_, pre)
+
+
+        base = list(map(base_value, a))
+        segtree = SegTree(base, combine, modify_op)
+
+        ret = []
+
+        for idx, val, start, rem in queries:
+            val %= k
+            segtree.modify(idx, val)
+            
+            ans = segtree.query(start, n)
+            ret.append(ans[1][rem])
+
+        return ret
