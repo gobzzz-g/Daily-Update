@@ -1,21 +1,21 @@
 class Solution:
-    def shortestBeautifulSubstring(self, s: str, k: int) -> str:
-        positions = [i for i, ch in enumerate(s) if ch == '1']
+    def averageOfSubtree(self, root: TreeNode) -> int:
+        self.count = 0
 
-        if len(positions) < k:
-            return ""
+        def dfs(node):
+            if not node:
+                return 0, 0
 
-        ans = ""
+            left_sum, left_count = dfs(node.left)
+            right_sum, right_count = dfs(node.right)
 
-        for i in range(len(positions) - k + 1):
-            start = positions[i]
-            end = positions[i + k - 1]
+            total_sum = left_sum + right_sum + node.val
+            total_count = left_count + right_count + 1
 
-            candidate = s[start:end + 1]
+            if node.val == total_sum // total_count:
+                self.count += 1
 
-            if not ans or len(candidate) < len(ans):
-                ans = candidate
-            elif len(candidate) == len(ans) and candidate < ans:
-                ans = candidate
+            return total_sum, total_count
 
-        return ans
+        dfs(root)
+        return self.count    

@@ -1,16 +1,92 @@
 class Solution:
-    def largestInteger(self, nums: List[int], k: int) -> int:
-        if k==len(nums):
-            return max(nums)
-        c=Counter(nums)
-        ans=-1
-        if k>1:
-            if c[nums[0]]==1:
-                ans=max(ans,nums[0])
-            if c[nums[-1]]==1:
-                ans=max(ans,nums[-1])
+    def isPossible(self, n, freq, cur, mid, target):
+        freq = freq[:]  
+        for i in range(25, -1, -1):
+            while freq[i]:
+                cur += chr(ord('a') + i)
+                freq[i] -= 1
+
+        if mid != '#':
+            
+            temp = cur
+            cur += mid
+            temp = temp[::-1]
+            cur += temp
         else:
-            for i in c:
-                if c[i]==1:
-                    ans=max(ans,i)
-        return ans
+           
+            temp = cur
+            temp = temp[::-1]
+            cur += temp
+
+        
+        return cur if cur > target else ""
+
+    def lexPalindromicPermutation(self, s, target):
+        n = len(s)
+
+        freq = [0] * 26
+
+        if n == 1:
+            if s > target:
+                return s
+            else:
+                return ""
+
+        for c in s:
+            freq[ord(c) - ord('a')] += 1
+
+        mid = '#'
+        oddCount = 0
+
+        for i in range(26):
+            if freq[i] % 2:
+               
+                mid = chr(ord('a') + i)
+                freq[i] -= 1
+                oddCount += 1
+
+            freq[i] //= 2  
+
+            if oddCount >= 2:
+                return ""
+
+        n //= 2  
+
+        res, prefix = "", ""
+
+        
+        for i in range(n):
+
+            cur = prefix
+            isThereAny = False
+
+            
+            for j in range(26):
+
+                if freq[j]:
+
+                    freq[j] -= 1
+                    cur += chr(ord('a') + j)
+
+                    
+                    isPos = self.isPossible(n, freq, cur, mid, target)
+
+                    if isPos != "":
+                        prefix = cur      
+                        isThereAny = True
+
+                        if res == "":
+                            res = isPos
+                        else:
+                            res = min(res, isPos)  
+
+                        break
+
+                    
+                    freq[j] += 1
+                    cur = cur[:-1]
+
+            if not isThereAny:
+                return ""  
+
+        return  res 

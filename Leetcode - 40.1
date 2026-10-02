@@ -1,24 +1,34 @@
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
 class Solution:
-    def sumGame(self, num: str) -> bool:
-        n = len(num)
-
-        diff = 0
-        left_q = 0
-        right_q = 0
-
-        for i in range(n // 2):
-            if num[i] == '?':
-                left_q += 1
-            else:
-                diff += int(num[i])
-
-        for i in range(n // 2, n):
-            if num[i] == '?':
-                right_q += 1
-            else:
-                diff -= int(num[i])
-
-        if (left_q + right_q) % 2 == 1:
-            return True
-
-        return diff != 9 * (right_q - left_q) // 2
+    def nodesBetweenCriticalPoints(self, head: ListNode) -> list[int]:
+        if not head or not head.next or not head.next.next:
+            return [-1, -1]
+        
+        first_critical = last_critical = -1
+        min_distance = float('inf')
+        prev_critical_index = -1
+        index = 1
+        prev, curr = head, head.next
+        
+        while curr and curr.next:
+            if (curr.val > prev.val and curr.val > curr.next.val) or (curr.val < prev.val and curr.val < curr.next.val):
+                if prev_critical_index != -1:
+                    min_distance = min(min_distance, index - prev_critical_index)
+                prev_critical_index = index
+                if first_critical == -1:
+                    first_critical = index
+                last_critical = index
+            
+            prev = curr
+            curr = curr.next
+            index += 1
+        
+        if first_critical == last_critical:
+            return [-1, -1]
+        
+        return [min_distance, last_critical - first_critical]

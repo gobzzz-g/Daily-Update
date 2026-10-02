@@ -1,21 +1,21 @@
-class Solution(object):
-    def maximumLengthSubstring(self, s):
-        ans = 0
+class Solution:
+    def shortestBeautifulSubstring(self, s: str, k: int) -> str:
+        positions = [i for i, ch in enumerate(s) if ch == '1']
 
-        for i in range(len(s)):
-            freq = {}
+        if len(positions) < k:
+            return ""
 
-            for j in range(i, len(s)):
+        ans = ""
 
-                char = s[j]
+        for i in range(len(positions) - k + 1):
+            start = positions[i]
+            end = positions[i + k - 1]
 
-                if char not in freq:
-                    freq[char] = 0
-                freq[char] += 1
+            candidate = s[start:end + 1]
 
-                if freq[char] > 2:
-                    break
-
-                ans = max(ans, j - i + 1)
+            if not ans or len(candidate) < len(ans):
+                ans = candidate
+            elif len(candidate) == len(ans) and candidate < ans:
+                ans = candidate
 
         return ans

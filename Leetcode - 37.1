@@ -1,12 +1,7 @@
 class Solution:
-    def resultArray(self, nums: List[int]) -> List[int]:
-        left: list[int] = [nums.pop(0)]
-        right: list[int] = [nums.pop(0)]
-
-        for num in nums:
-            if left[-1] > right[-1]:
-                left.append(num)
-            else:
-                right.append(num)
-
-        return left + right
+    def missingMultiple(self, nums: List[int], k: int) -> int:
+        num_set = set(nums)
+        m = k
+        while m in num_set:
+            m += k
+        return m
