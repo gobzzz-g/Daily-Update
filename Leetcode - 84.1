@@ -1,0 +1,23 @@
+class Solution(object):
+    def maxSumOfSquares(self, num, sum):
+        """
+        :type num: int
+        :type sum: int
+        :rtype: str
+        """
+        
+        if sum>num*9:
+            return ""
+        
+        arr=[]
+        while num>0:
+            if sum>=9:
+                sum-=9
+                arr.append('9')
+            elif sum==0:
+                arr.append('0')
+            else:
+                arr.append(str(sum))
+                sum=0
+            num-=1
+        return ''.join(arr)
