@@ -1,0 +1,17 @@
+class Solution:
+    def findTheDistanceValue(self, arr1: list[int], arr2: list[int], d: int) -> int:
+        L = 1000
+        prefix = [0] * (2 * L + 2)
+        for a in arr2:
+            prefix[a + L + 1] += 1
+        for i in range(2 * L + 1):
+            prefix[i + 1] += prefix[i]
+
+        ans = 0
+        for a in arr1:
+            a += L
+            i = max(0, a - d)
+            j = min(2 * L + 1, a + d + 1)
+            if prefix[i] == prefix[j]:
+                ans += 1
+        return ans
